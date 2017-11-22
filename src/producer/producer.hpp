@@ -7,12 +7,18 @@
 #include <ndn-cxx/security/key-chain.hpp>
 
 #include <cryptopp/osrng.h>
+#include <cryptopp/files.h>
 #include <cryptopp/hex.h>
 
 using namespace CryptoPP;
 
 namespace ndn {
 namespace epac {
+
+enum RequestType {
+  REGISTER,
+  DATA
+};
 
 class Producer : noncopyable {
 
@@ -26,7 +32,11 @@ class Producer : noncopyable {
 
   void doRegister(const Interest &interest);
 
+  void doData(const Interest &interest);
+
   void generateKey();
+
+  bool decodeUrl(const std::string &in, std::string &out);
 
  private:
   Face m_face;
@@ -34,6 +44,8 @@ class Producer : noncopyable {
 
   SecByteBlock *m_key;
   SecByteBlock *m_iv;
+
+  const std::string DATADIR = "/Users/Arestolus/Works/Simulation/data";
 };
 } // namespace epac
 } // namespace ndn

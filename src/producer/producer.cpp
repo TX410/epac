@@ -15,25 +15,23 @@ void Producer::run() {
 void Producer::onInterest(const InterestFilter &filter, const Interest &interest) {
   std::cout << "I:" << interest << std::endl;
 
-  Name dataName(interest.getName());
-  dataName.append("testapp").appendVersion();
+  RequestType type = DATA;
 
-  static const std::string content = "HELLO KITTY";
+  /**
+   * for register:
+   *        /youtube/register/{pubkey hex}
+   * for data:
+   *        /youtube/{dataname}
+   */
+  if (interest.getName().at(-2).toUri() == "register")
+    type = REGISTER;
 
-  // Create Data packet
-  shared_ptr<Data> data = make_shared<Data>();
-  data->setName(dataName);
-  data->setFreshnessPeriod(time::seconds(10));
-  data->setContent(reinterpret_cast<const uint8_t *>(content.c_str()), content.size());
-
-  // Sign Data packet with default identity
-  m_keyChain.sign(*data);
-  // m_keyChain.sign(data, <identityName>);
-  // m_keyChain.sign(data, <certificate>);
-
-  // Return Data packet to the requester
-  std::cout << ">> D: " << *data << std::endl;
-  m_face.put(*data);
+  switch (type) {
+    case REGISTER:doRegister(interest);
+      break;
+    case DATA: doData(interest);
+      break;
+  }
 }
 
 void Producer::onRegisterFailed(const Name &prefix, const std::string &reason) {
@@ -84,6 +82,56 @@ void Producer::doRegister(const Interest &interest) {
   m_keyChain.sign(*data);
 
   m_face.put(*data);
+}
+void Producer::doData(const Interest &interest) {
+
+  std::string url = interest.getName().getSubName(1).toUri();
+
+  std::string filename;
+
+  decodeUrl(DATADIR + url, filename);
+
+  std::string payload;
+
+  FileSource file(filename.c_str(), true,
+                  new StringSink(payload)
+  );
+
+  shared_ptr<Data> data = make_shared<Data>();
+  data->setName(interest.getName());
+
+  data->setContent(reinterpret_cast<const uint8_t *>(payload.c_str()), payload.size());
+
+  m_keyChain.sign(*data);
+
+  m_face.put(*data);
+}
+
+bool Producer::decodeUrl(const std::string &in, std::string &out) {
+
+  out.reserve(in.size());
+
+  for (std::size_t i = 0; i < in.size(); ++i) {
+    if (in[i] == '%') {
+      if (i + 3 <= in.size()) {
+        int value = 0;
+        std::istringstream is(in.substr(i + 1, 2));
+        if (is >> std::hex >> value) {
+          out += static_cast<char>(value);
+          i += 2;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else if (in[i] == '+') {
+      out += ' ';
+    } else {
+      out += in[i];
+    }
+  }
+  return true;
 }
 } // namespace epac
 } // namespace ndn
