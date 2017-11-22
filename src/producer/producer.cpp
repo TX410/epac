@@ -27,7 +27,7 @@ void Producer::onInterest(const InterestFilter &filter, const Interest &interest
     type = REGISTER;
 
   switch (type) {
-    case REGISTER:doRegister(interest);
+    case REGISTER:doSubscribe(interest);
       break;
     case DATA: doData(interest);
       break;
@@ -52,7 +52,7 @@ void Producer::generateKey() {
   rng.GenerateBlock(*m_iv, m_iv->size());
 }
 
-void Producer::doRegister(const Interest &interest) {
+void Producer::doSubscribe(const Interest &interest) {
 
   Name dataName(interest.getName());
 

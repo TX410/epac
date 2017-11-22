@@ -30,7 +30,7 @@ class Producer : noncopyable {
 
   void onRegisterFailed(const Name &prefix, const std::string &reason);
 
-  void doRegister(const Interest &interest);
+  void doSubscribe(const Interest &interest);
 
   void doData(const Interest &interest);
 
