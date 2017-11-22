@@ -29,4 +29,5 @@ class Consumer : noncopyable {
   Scheduler m_scheduler;
 };
 } // namespace epac
+} // namespace ndn
 #endif //EPAC_CONSUMER_HPP
