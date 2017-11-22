@@ -4,8 +4,19 @@
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
+
+using namespace CryptoPP;
+
 namespace ndn {
 namespace epac {
+
+enum ResponseType {
+  REGISTER,
+  MANIFEST,
+  DATA
+};
 
 class Consumer : noncopyable {
 
@@ -23,10 +34,19 @@ class Consumer : noncopyable {
 
   void delayedInterest();
 
+  void subscribe();
+
+  void onManifest(const Interest &interest, const Data &data);
+
+  void onSubscribe(const Interest &interest, const Data &data);
+
  private:
   boost::asio::io_service m_ioService;
   Face m_face;
   Scheduler m_scheduler;
+
+  SecByteBlock *m_key;
+  SecByteBlock *m_iv;
 };
 } // namespace epac
 } // namespace ndn

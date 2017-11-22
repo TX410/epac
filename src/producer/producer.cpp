@@ -4,12 +4,15 @@ namespace ndn {
 namespace epac {
 
 void Producer::run() {
+
+  generateKey();
+
   m_face.setInterestFilter("/example/testApp",
                            bind(&Producer::onInterest, this, _1, _2),
                            RegisterPrefixSuccessCallback(),
                            bind(&Producer::onRegisterFailed, this, _1, _2));
 
-  generateKey();
+  m_face.processEvents();
 }
 
 void Producer::onInterest(const InterestFilter &filter, const Interest &interest) {
