@@ -7,7 +7,7 @@ void Producer::run() {
 
   generateKey();
 
-  m_face.setInterestFilter("/example/testApp",
+  m_face.setInterestFilter("/youtube",
                            bind(&Producer::onInterest, this, _1, _2),
                            RegisterPrefixSuccessCallback(),
                            bind(&Producer::onRegisterFailed, this, _1, _2));

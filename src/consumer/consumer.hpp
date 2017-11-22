@@ -1,6 +1,8 @@
 #ifndef EPAC_CONSUMER_HPP
 #define EPAC_CONSUMER_HPP
 
+#include <queue>
+
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 
@@ -44,6 +46,8 @@ class Consumer : noncopyable {
   boost::asio::io_service m_ioService;
   Face m_face;
   Scheduler m_scheduler;
+
+  std::queue<std::string> m_request_queue;
 
   SecByteBlock *m_key;
   SecByteBlock *m_iv;

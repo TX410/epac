@@ -9,7 +9,7 @@ Consumer::Consumer()
 }
 
 void Consumer::run() {
-  Interest interest(Name("/example/testApp/randomData"));
+  Interest interest(Name("/youtube/testApp/randomData"));
   interest.setInterestLifetime(time::seconds(1));
   interest.setMustBeFresh(true);
 
