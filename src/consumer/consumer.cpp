@@ -118,18 +118,23 @@ void Consumer::onSubscribe(const Interest &interest, const Data &data) {
   m_key = new SecByteBlock(reinterpret_cast<const unsigned char *>(keystring.data()), keystring.size());
   m_iv = new SecByteBlock(reinterpret_cast<const unsigned char * >(ivstring.data()), ivstring.size());
 
-//  Interest manifestInterest(Name("/youtube/c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/manifest"));
-//  manifestInterest.setInterestLifetime(time::milliseconds(1000));
-//  manifestInterest.setMustBeFresh(true);
-//
-//  m_face.expressInterest(manifestInterest,
-//                         bind(&Consumer::onData, this, _1, _2),
-//                         bind(&Consumer::onNack, this, _1, _2),
-//                         bind(&Consumer::onTimeout, this, _1));
+  Interest manifestInterest(Name("/youtube/c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/manifest"));
+  manifestInterest.setInterestLifetime(time::milliseconds(1000));
+  manifestInterest.setMustBeFresh(true);
+
+  m_face.expressInterest(manifestInterest,
+                         bind(&Consumer::onData, this, _1, _2),
+                         bind(&Consumer::onNack, this, _1, _2),
+                         bind(&Consumer::onTimeout, this, _1));
 }
 
 void Consumer::onManifest(const Interest &interest, const Data &data) {
 
+  const Block &block = data.getContent();
+
+  std::string payload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+
+  std::cout << payload << std::endl;
 }
 }
 } // namespace ndn
