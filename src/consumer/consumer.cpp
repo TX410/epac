@@ -6,6 +6,13 @@ namespace epac {
 Consumer::Consumer()
     : m_face(m_ioService), m_scheduler(m_ioService) {
 
+  AutoSeededRandomPool rng;
+  InvertibleRSAFunction params;
+
+  params.GenerateRandomWithKeySize(rng, 1024);
+
+  publicKey = new RSA::PrivateKey(params);
+  privateKey = new RSA::PrivateKey(params);
 }
 
 void Consumer::run() {
@@ -80,7 +87,17 @@ void Consumer::delayedInterest() {
 
 void Consumer::subscribe() {
 
-  Interest interest(Name("/youtube/register/pubkey"));
+  std::string derpubkey, pubkey;
+  StringSink ss(derpubkey);
+  publicKey->DEREncodePublicKey(ss);
+
+  StringSource source(derpubkey, true,
+                      new HexEncoder(
+                          new StringSink(pubkey)
+                      )
+  );
+
+  Interest interest(Name("/youtube/register/" + pubkey));
 
   m_face.expressInterest(interest,
                          bind(&Consumer::onData, this, _1, _2),

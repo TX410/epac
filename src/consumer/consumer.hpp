@@ -2,12 +2,15 @@
 #define EPAC_CONSUMER_HPP
 
 #include <queue>
+#include <iostream>
 
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 
 #include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/rsa.h>
 
 using namespace CryptoPP;
 
@@ -48,6 +51,9 @@ class Consumer : noncopyable {
   Scheduler m_scheduler;
 
   std::queue<std::string> m_request_queue;
+
+  RSA::PublicKey *publicKey;
+  RSA::PrivateKey *privateKey;
 
   SecByteBlock *m_key;
   SecByteBlock *m_iv;
