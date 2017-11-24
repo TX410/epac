@@ -23,6 +23,8 @@ enum RequestType {
 class Producer : noncopyable {
 
  public:
+  Producer(const std::string &prefix, const std::string &data_dir);
+
   void run();
 
  private:
@@ -45,7 +47,8 @@ class Producer : noncopyable {
   SecByteBlock *m_key;
   SecByteBlock *m_iv;
 
-  const std::string DATADIR = "/Users/Arestolus/Works/Simulation/data";
+  const std::string PREFIX;
+  const std::string DATADIR;
 };
 } // namespace epac
 } // namespace ndn

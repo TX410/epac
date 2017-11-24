@@ -9,16 +9,16 @@ Consumer::Consumer()
 }
 
 void Consumer::run() {
-  Interest interest(Name("/youtube/testApp/randomData"));
-  interest.setInterestLifetime(time::seconds(1));
-  interest.setMustBeFresh(true);
-
-  m_face.expressInterest(interest,
-                         bind(&Consumer::onData, this, _1, _2),
-                         bind(&Consumer::onNack, this, _1, _2),
-                         bind(&Consumer::onTimeout, this, _1));
-
-  std::cout << "Sending " << interest << std::endl;
+//  Interest interest(Name("/youtube/testApp/randomData"));
+//  interest.setInterestLifetime(time::seconds(1));
+//  interest.setMustBeFresh(true);
+//
+//  m_face.expressInterest(interest,
+//                         bind(&Consumer::onData, this, _1, _2),
+//                         bind(&Consumer::onNack, this, _1, _2),
+//                         bind(&Consumer::onTimeout, this, _1));
+//
+//  std::cout << "Sending " << interest << std::endl;
 
   // Schedule a new event
   m_scheduler.scheduleEvent(time::seconds(2),

@@ -3,11 +3,16 @@
 namespace ndn {
 namespace epac {
 
+Producer::Producer(const std::string &prefix, const std::string &data_dir)
+    : PREFIX(prefix), DATADIR(data_dir) {
+
+}
+
 void Producer::run() {
 
   generateKey();
 
-  m_face.setInterestFilter("/youtube",
+  m_face.setInterestFilter(PREFIX,
                            bind(&Producer::onInterest, this, _1, _2),
                            RegisterPrefixSuccessCallback(),
                            bind(&Producer::onRegisterFailed, this, _1, _2));
