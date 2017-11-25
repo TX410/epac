@@ -3,8 +3,8 @@
 namespace ndn {
 namespace epac {
 
-Consumer::Consumer()
-    : m_face(m_ioService), m_scheduler(m_ioService) {
+Consumer::Consumer(const std::string &prefix)
+    : PREFIX(prefix), m_face(m_ioService), m_scheduler(m_ioService) {
 
   AutoSeededRandomPool rng;
   InvertibleRSAFunction params;
@@ -97,7 +97,7 @@ void Consumer::subscribe() {
                       )
   );
 
-  Interest interest(Name("/youtube/register/" + pubkey));
+  Interest interest(Name(PREFIX + "/register/" + pubkey));
 
   m_face.expressInterest(interest,
                          bind(&Consumer::onData, this, _1, _2),
@@ -135,7 +135,7 @@ void Consumer::onSubscribe(const Interest &interest, const Data &data) {
   m_key = new SecByteBlock(reinterpret_cast<const unsigned char *>(keystring.data()), keystring.size());
   m_iv = new SecByteBlock(reinterpret_cast<const unsigned char * >(ivstring.data()), ivstring.size());
 
-  Interest manifestInterest(Name("/youtube/c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/manifest"));
+  Interest manifestInterest(Name(PREFIX + "/c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/manifest"));
   manifestInterest.setInterestLifetime(time::milliseconds(1000));
   manifestInterest.setMustBeFresh(true);
 
