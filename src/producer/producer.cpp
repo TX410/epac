@@ -1,3 +1,4 @@
+#include <cryptopp/rsa.h>
 #include "producer.hpp"
 
 namespace ndn {
@@ -64,6 +65,19 @@ void Producer::doSubscribe(const Interest &interest) {
 
   Name dataName(interest.getName());
 
+  std::string hexpubkey = interest.getName().at(-1).toUri();
+
+  std::string derpubkey, pubkey;
+  StringSource ss(hexpubkey, true,
+                  new HexDecoder(
+                      new StringSink(derpubkey)
+                  )
+  );
+
+  RSA::PublicKey publicKey;
+  StringSource source(derpubkey, true);
+  publicKey.BERDecodePublicKey(source, false, derpubkey.size());
+
   std::string keystring = std::string(reinterpret_cast<const char *>(m_key->data()), m_key->size());
   std::string ivstring = std::string(reinterpret_cast<const char *>(m_iv->data()), m_iv->size());
 
@@ -81,6 +95,23 @@ void Producer::doSubscribe(const Interest &interest) {
   );
 
   std::string payload = "key:" + hexkey + ";iv:" + hexiv;
+
+  std::string encryptedpayload;
+  AutoSeededRandomPool rng;
+  RSAES_OAEP_SHA_Encryptor e(publicKey);
+  StringSource encryptsource(payload, true,
+                             new PK_EncryptorFilter(rng, e,
+                                                    new StringSink(encryptedpayload)
+                             ) // PK_EncryptorFilter
+  ); // StringSource
+
+  payload.clear();
+
+  StringSource sspayload(encryptedpayload, true,
+                         new HexEncoder(
+                             new StringSink(payload)
+                         )
+  );
 
   shared_ptr<Data> data = make_shared<Data>();
   data->setName(dataName);
