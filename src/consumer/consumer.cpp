@@ -4,7 +4,7 @@ namespace ndn {
 namespace epac {
 
 Consumer::Consumer(const std::string &prefix)
-    : PREFIX(prefix), m_face(m_ioService), m_scheduler(m_ioService) {
+    : m_face(m_ioService), m_scheduler(m_ioService), PREFIX(prefix) {
 
   AutoSeededRandomPool rng;
   InvertibleRSAFunction params;
