@@ -110,7 +110,23 @@ void Consumer::onSubscribe(const Interest &interest, const Data &data) {
   std::cout << data << std::endl;
   const Block &block = data.getContent();
 
-  std::string payload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+  std::string hexpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+
+  std::string encryptedpayload, payload;
+  StringSource stringSource(hexpayload, true,
+                            new HexDecoder(
+                                new StringSink(encryptedpayload)
+                            )
+  );
+
+  AutoSeededRandomPool rng;
+  RSAES_OAEP_SHA_Decryptor d(*privateKey);
+
+  StringSource ss2(encryptedpayload, true,
+                   new PK_DecryptorFilter(rng, d,
+                                          new StringSink(payload)
+                   ) // PK_DecryptorFilter
+  ); // StringSource
 
   std::string hexkey = payload.substr(payload.find("key:") + 4, payload.find(";") - payload.find("key:") - 4);
   std::string hexiv = payload.substr(payload.find("iv:") + 3);
