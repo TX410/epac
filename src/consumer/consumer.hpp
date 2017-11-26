@@ -4,6 +4,8 @@
 #include <queue>
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
+
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/util/scheduler.hpp>
 

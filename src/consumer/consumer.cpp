@@ -165,9 +165,25 @@ void Consumer::onManifest(const Interest &interest, const Data &data) {
 
   const Block &block = data.getContent();
 
-  std::string payload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+  std::string encryptedpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
 
-  std::cout << payload << std::endl;
+  std::string payload;
+
+  AutoSeededRandomPool rng;
+  RSAES_OAEP_SHA_Decryptor d(*privateKey);
+
+  StringSource ss2(encryptedpayload, true,
+                   new PK_DecryptorFilter(rng, d,
+                                          new StringSink(payload)
+                   ) // PK_DecryptorFilter
+  ); // StringSource
+
+  std::vector<std::string> list;
+  boost::algorithm::split(list, payload, boost::algorithm::is_any_of("\n"), boost::algorithm::token_compress_on);
+
+  for (std::string str : list) {
+    m_request_queue.push(str);
+  }
 }
 }
 } // namespace ndn

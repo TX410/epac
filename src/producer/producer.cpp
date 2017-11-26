@@ -122,6 +122,7 @@ void Producer::doSubscribe(const Interest &interest) {
 
   m_face.put(*data);
 }
+
 void Producer::doData(const Interest &interest) {
 
   std::string url = interest.getName().getSubName(1).toUri();
@@ -136,10 +137,19 @@ void Producer::doData(const Interest &interest) {
                   new StringSink(payload)
   );
 
+  std::string encryptedpayload;
+  AutoSeededRandomPool rng;
+  RSAES_OAEP_SHA_Encryptor e(publicKey);
+  StringSource encryptsource(payload, true,
+                             new PK_EncryptorFilter(rng, e,
+                                                    new StringSink(encryptedpayload)
+                             ) // PK_EncryptorFilter
+  ); // StringSource
+
   shared_ptr<Data> data = make_shared<Data>();
   data->setName(interest.getName());
 
-  data->setContent(reinterpret_cast<const uint8_t *>(payload.c_str()), payload.size());
+  data->setContent(reinterpret_cast<const uint8_t *>(encryptedpayload.c_str()), encryptedpayload.size());
 
   m_keyChain.sign(*data);
 
