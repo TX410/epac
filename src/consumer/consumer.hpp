@@ -13,6 +13,7 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/rsa.h>
+#include <cryptopp/modes.h>
 
 using namespace CryptoPP;
 

@@ -137,19 +137,27 @@ void Producer::doData(const Interest &interest) {
                   new StringSink(payload)
   );
 
-  std::string encryptedpayload;
-  AutoSeededRandomPool rng;
-  RSAES_OAEP_SHA_Encryptor e(publicKey);
+  std::string encryptedpayload, hexpayload;
+
+  CBC_Mode<AES>::Encryption e;
+  e.SetKeyWithIV(*m_key, m_key->size(), *m_iv);
+
   StringSource encryptsource(payload, true,
-                             new PK_EncryptorFilter(rng, e,
-                                                    new StringSink(encryptedpayload)
-                             ) // PK_EncryptorFilter
+                             new StreamTransformationFilter(e,
+                                                            new StringSink(encryptedpayload)
+                             ) // StreamTransformationFilter
   ); // StringSource
+
+  StringSource hexsource(encryptedpayload, true,
+                         new HexEncoder(
+                             new StringSink(hexpayload)
+                         )
+  );
 
   shared_ptr<Data> data = make_shared<Data>();
   data->setName(interest.getName());
 
-  data->setContent(reinterpret_cast<const uint8_t *>(encryptedpayload.c_str()), encryptedpayload.size());
+  data->setContent(reinterpret_cast<const uint8_t *>(hexpayload.c_str()), hexpayload.size());
 
   m_keyChain.sign(*data);
 

@@ -59,17 +59,23 @@ void Consumer::onData(const Interest &interest, const Data &data) {
 
   const Block &block = data.getContent();
 
-  std::string encryptedpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+  std::string hexpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
 
-  std::string payload;
+  std::string payload, encryptedpayload;
 
-  AutoSeededRandomPool rng;
-  RSAES_OAEP_SHA_Decryptor d(*privateKey);
+  StringSource ss1(hexpayload, true,
+                   new HexDecoder(
+                       new StringSink(encryptedpayload)
+                   )
+  );
+
+  CBC_Mode<AES>::Decryption d;
+  d.SetKeyWithIV(*m_key, m_key->size(), *m_iv);
 
   StringSource ss2(encryptedpayload, true,
-                   new PK_DecryptorFilter(rng, d,
-                                          new StringSink(payload)
-                   ) // PK_DecryptorFilter
+                   new StreamTransformationFilter(d,
+                                                  new StringSink(payload)
+                   ) // StreamTransformationFilter
   ); // StringSource
 }
 
@@ -127,7 +133,7 @@ void Consumer::requestData() {
   std::string dataname = m_request_queue.front().data();
   m_request_queue.pop();
 
-  Interest interest(Name(PREFIX + "c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/" + dataname));
+  Interest interest(Name(PREFIX + "/c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/" + dataname));
 
   m_face.expressInterest(interest,
                          bind(&Consumer::onData, this, _1, _2),
@@ -200,17 +206,23 @@ void Consumer::onManifest(const Interest &interest, const Data &data) {
 
   const Block &block = data.getContent();
 
-  std::string encryptedpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+  std::string hexpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
 
-  std::string payload;
+  std::string payload, encryptedpayload;
 
-  AutoSeededRandomPool rng;
-  RSAES_OAEP_SHA_Decryptor d(*privateKey);
+  StringSource ss1(hexpayload, true,
+                   new HexDecoder(
+                       new StringSink(encryptedpayload)
+                   )
+  );
+
+  CBC_Mode<AES>::Decryption d;
+  d.SetKeyWithIV(*m_key, m_key->size(), *m_iv);
 
   StringSource ss2(encryptedpayload, true,
-                   new PK_DecryptorFilter(rng, d,
-                                          new StringSink(payload)
-                   ) // PK_DecryptorFilter
+                   new StreamTransformationFilter(d,
+                                                  new StringSink(payload)
+                   ) // StreamTransformationFilter
   ); // StringSource
 
   std::vector<std::string> list;

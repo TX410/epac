@@ -9,6 +9,7 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/files.h>
 #include <cryptopp/hex.h>
+#include <cryptopp/modes.h>
 
 using namespace CryptoPP;
 
