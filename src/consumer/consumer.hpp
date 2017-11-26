@@ -43,6 +43,8 @@ class Consumer : noncopyable {
 
   void subscribe();
 
+  void requestData();
+
   void onManifest(const Interest &interest, const Data &data);
 
   void onSubscribe(const Interest &interest, const Data &data);

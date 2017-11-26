@@ -54,10 +54,23 @@ void Consumer::onData(const Interest &interest, const Data &data) {
       return;
     case MANIFEST:onManifest(interest, data);
       return;
-    default:break;
+    default:;
   }
 
-  std::cout << data << std::endl;
+  const Block &block = data.getContent();
+
+  std::string encryptedpayload = std::string(reinterpret_cast<const char *>(block.value()), block.value_size());
+
+  std::string payload;
+
+  AutoSeededRandomPool rng;
+  RSAES_OAEP_SHA_Decryptor d(*privateKey);
+
+  StringSource ss2(encryptedpayload, true,
+                   new PK_DecryptorFilter(rng, d,
+                                          new StringSink(payload)
+                   ) // PK_DecryptorFilter
+  ); // StringSource
 }
 
 void Consumer::onNack(const Interest &interest, const lp::Nack &nack) {
@@ -102,7 +115,28 @@ void Consumer::subscribe() {
   m_face.expressInterest(interest,
                          bind(&Consumer::onData, this, _1, _2),
                          bind(&Consumer::onNack, this, _1, _2),
-                         bind(&Consumer::onTimeout, this, _1));
+                         bind(&Consumer::onTimeout, this, _1)
+  );
+}
+
+void Consumer::requestData() {
+
+  if (m_request_queue.empty())
+    return;
+
+  std::string dataname = m_request_queue.front().data();
+  m_request_queue.pop();
+
+  Interest interest(Name(PREFIX + "c4f8a2f4ff6ab8290c4019a0c5183e71/192×144/splits/" + dataname));
+
+  m_face.expressInterest(interest,
+                         bind(&Consumer::onData, this, _1, _2),
+                         bind(&Consumer::onNack, this, _1, _2),
+                         bind(&Consumer::onTimeout, this, _1)
+  );
+
+  m_scheduler.scheduleEvent(time::seconds(2),
+                            bind(&Consumer::requestData, this));
 }
 
 void Consumer::onSubscribe(const Interest &interest, const Data &data) {
@@ -158,7 +192,8 @@ void Consumer::onSubscribe(const Interest &interest, const Data &data) {
   m_face.expressInterest(manifestInterest,
                          bind(&Consumer::onData, this, _1, _2),
                          bind(&Consumer::onNack, this, _1, _2),
-                         bind(&Consumer::onTimeout, this, _1));
+                         bind(&Consumer::onTimeout, this, _1)
+  );
 }
 
 void Consumer::onManifest(const Interest &interest, const Data &data) {
@@ -184,6 +219,8 @@ void Consumer::onManifest(const Interest &interest, const Data &data) {
   for (std::string str : list) {
     m_request_queue.push(str);
   }
+
+  requestData();
 }
 }
 } // namespace ndn
