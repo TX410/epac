@@ -14,6 +14,7 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/rsa.h>
 #include <cryptopp/modes.h>
+#include <cryptopp/files.h>
 
 using namespace CryptoPP;
 
@@ -29,7 +30,7 @@ enum ResponseType {
 class Consumer : noncopyable {
 
  public:
-  Consumer(const std::string &prefix, int frequency);
+  Consumer(const std::string &prefix, const std::string &data_dir, int frequency);
 
   void run();
 
@@ -50,6 +51,8 @@ class Consumer : noncopyable {
 
   void onSubscribe(const Interest &interest, const Data &data);
 
+  bool url_decode(const std::string &in, std::string &out);
+
  private:
   boost::asio::io_service m_ioService;
   Face m_face;
@@ -64,6 +67,7 @@ class Consumer : noncopyable {
   SecByteBlock *m_iv;
 
   const std::string PREFIX;
+  const std::string DATA_DIR;
   int m_frequency;
 };
 } // namespace epac

@@ -3,8 +3,8 @@
 namespace ndn {
 namespace epac {
 
-Consumer::Consumer(const std::string &prefix, int frequency)
-    : m_face(m_ioService), m_scheduler(m_ioService), PREFIX(prefix), m_frequency(frequency) {
+Consumer::Consumer(const std::string &prefix, const std::string &data_dir, int frequency)
+    : m_face(m_ioService), m_scheduler(m_ioService), PREFIX(prefix), m_frequency(frequency), DATA_DIR(data_dir) {
 
   AutoSeededRandomPool rng;
   InvertibleRSAFunction params;
@@ -77,6 +77,17 @@ void Consumer::onData(const Interest &interest, const Data &data) {
                                                   new StringSink(payload)
                    ) // StreamTransformationFilter
   ); // StringSource
+
+  if (DATA_DIR != "") {
+
+    std::string dataname;
+    url_decode(interest.getName().getSubName(1).toUri(), dataname);
+
+    std::string data_dir = DATA_DIR + dataname;
+    StringSource data(payload, true,
+                      new FileSink(DATA_DIR.c_str())
+    );
+  }
 }
 
 void Consumer::onNack(const Interest &interest, const lp::Nack &nack) {
@@ -233,6 +244,31 @@ void Consumer::onManifest(const Interest &interest, const Data &data) {
   }
 
   requestData();
+}
+
+bool Consumer::url_decode(const std::string &in, std::string &out) {
+  out.reserve(in.size());
+  for (std::size_t i = 0; i < in.size(); ++i) {
+    if (in[i] == '%') {
+      if (i + 3 <= in.size()) {
+        int value = 0;
+        std::istringstream is(in.substr(i + 1, 2));
+        if (is >> std::hex >> value) {
+          out += static_cast<char>(value);
+          i += 2;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else if (in[i] == '+') {
+      out += ' ';
+    } else {
+      out += in[i];
+    }
+  }
+  return true;
 }
 }
 } // namespace ndn

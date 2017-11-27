@@ -1,6 +1,7 @@
 #include "consumer.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 namespace po = boost::program_options;
 
@@ -14,6 +15,7 @@ void usage() {
 int main(int argc, char **argv) {
 
   description.add_options()
+      ("data-dir,d", po::value<std::string>(), "directory to save data")
       ("frequency,f", po::value<int>()->default_value(1), "request frequency")
       ("prefix,p", po::value<std::string>(), "ndn domain prefix")
       ("help,h", "display this help and exit");
@@ -27,10 +29,16 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::string data_dir;
+
+  if (vm.count("data-dir")) {
+    data_dir = boost::filesystem::canonical(vm["data-dir"].as<std::string>()).string();
+  }
+
   const std::string &prefix = vm["prefix"].as<std::string>();
   int frequency = vm["frequency"].as<int>();
 
-  ndn::epac::Consumer consumer(prefix, frequency);
+  ndn::epac::Consumer consumer(prefix, data_dir, frequency);
 
   try {
     consumer.run();
