@@ -14,6 +14,7 @@ void usage() {
 int main(int argc, char **argv) {
 
   description.add_options()
+      ("frequency,f", po::value<int>()->default_value(1), "request frequency")
       ("prefix,p", po::value<std::string>(), "ndn domain prefix")
       ("help,h", "display this help and exit");
 
@@ -27,9 +28,10 @@ int main(int argc, char **argv) {
   }
 
   const std::string &prefix = vm["prefix"].as<std::string>();
+  int frequency = vm["frequency"].as<int>();
 
-  ndn::epac::Consumer consumer(prefix);
-  
+  ndn::epac::Consumer consumer(prefix, frequency);
+
   try {
     consumer.run();
   } catch (const std::exception &e) {

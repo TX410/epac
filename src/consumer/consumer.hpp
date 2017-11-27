@@ -29,7 +29,7 @@ enum ResponseType {
 class Consumer : noncopyable {
 
  public:
-  Consumer(const std::string &prefix);
+  Consumer(const std::string &prefix, int frequency);
 
   void run();
 
@@ -64,6 +64,7 @@ class Consumer : noncopyable {
   SecByteBlock *m_iv;
 
   const std::string PREFIX;
+  int m_frequency;
 };
 } // namespace epac
 } // namespace ndn

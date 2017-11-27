@@ -3,8 +3,8 @@
 namespace ndn {
 namespace epac {
 
-Consumer::Consumer(const std::string &prefix)
-    : m_face(m_ioService), m_scheduler(m_ioService), PREFIX(prefix) {
+Consumer::Consumer(const std::string &prefix, int frequency)
+    : m_face(m_ioService), m_scheduler(m_ioService), PREFIX(prefix), m_frequency(frequency) {
 
   AutoSeededRandomPool rng;
   InvertibleRSAFunction params;
@@ -141,7 +141,7 @@ void Consumer::requestData() {
                          bind(&Consumer::onTimeout, this, _1)
   );
 
-  m_scheduler.scheduleEvent(time::seconds(2),
+  m_scheduler.scheduleEvent(time::seconds(1 / m_frequency),
                             bind(&Consumer::requestData, this));
 }
 
