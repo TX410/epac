@@ -72,11 +72,26 @@ void Consumer::onData(const Interest &interest, const Data &data) {
   CBC_Mode<AES>::Decryption d;
   d.SetKeyWithIV(*m_key, m_key->size(), *m_iv);
 
-  StringSource ss2(encryptedpayload, true,
-                   new StreamTransformationFilter(d,
-                                                  new StringSink(payload)
-                   ) // StreamTransformationFilter
-  ); // StringSource
+  try {
+    StringSource ss2(encryptedpayload, true,
+                     new StreamTransformationFilter(d,
+                                                    new StringSink(payload)
+                     ) // StreamTransformationFilter
+    ); // StringSource
+  } catch (const Exception &exception) {
+    std::cout << interest << std::endl;
+    std::cout << exception.what() << std::endl;
+
+    Interest interest1(interest.getName());
+    interest1.setMustBeFresh(true);
+    m_face.expressInterest(interest1,
+                           bind(&Consumer::onData, this, _1, _2),
+                           bind(&Consumer::onNack, this, _1, _2),
+                           bind(&Consumer::onTimeout, this, _1)
+    );
+
+    return;
+  }
 
   if (DATA_DIR != "") {
 
